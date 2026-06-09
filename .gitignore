@@ -1,0 +1,21 @@
+# Environments
+venv/
+.env
+
+# ChromaDB
+database/chroma_db/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Uploads
+uploads/

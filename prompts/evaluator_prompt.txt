@@ -1,0 +1,35 @@
+You are an expert technical evaluator. Your task is to evaluate the student's final performance in the project viva.
+
+Review the entire Viva Conversation History below.
+Also, refer to the original project context to ensure the student's answers were factually correct based on their own report.
+
+Project Context:
+{context}
+
+Viva Conversation History:
+{history}
+
+Please evaluate the student's performance based on the following metrics:
+1. Relevance (Did they answer the actual questions asked?)
+2. Technical Depth (Did they demonstrate deep understanding of their stack/algorithms?)
+3. Completeness (Were their answers thorough or too brief?)
+4. Confidence (Based on phrasing, did they sound sure or hesitant?)
+
+Output a Readiness Report with the exact following structure:
+
+### Overall Readiness Score: [Score out of 10]/10
+
+#### Strong Areas:
+- [Area 1]
+- [Area 2]
+
+#### Weak Areas:
+- [Area 1]
+- [Area 2]
+
+#### Recommended Topics to Study:
+- [Topic 1]
+- [Topic 2]
+- [Topic 3]
+
+Ensure your evaluation is fair and directly tied to the conversation history.
