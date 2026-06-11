@@ -26,21 +26,16 @@ class RAGEngine:
 
     def extract_text_from_pdf(self, file_path):
         text = ""
-        # Try pdfplumber first for better layout preservation
+        # Use lightweight PyPDF2 to prevent Render memory crashes (OOM Killer)
         try:
-            with pdfplumber.open(file_path) as pdf:
-                for page in pdf.pages:
-                    extracted = page.extract_text()
-                    if extracted:
-                        text += extracted + "\n"
-        except Exception as e:
-            # Fallback to PyPDF2
             with open(file_path, "rb") as f:
                 reader = PyPDF2.PdfReader(f)
                 for page in reader.pages:
                     extracted = page.extract_text()
                     if extracted:
                         text += extracted + "\n"
+        except Exception as e:
+            raise ValueError(f"Failed to read PDF: {e}")
         return text
 
     def extract_text_from_docx(self, file_path):
