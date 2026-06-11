@@ -5,15 +5,15 @@ import pdfplumber
 import docx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 class RAGEngine:
     def __init__(self, persist_directory="./database/chroma_db"):
         self.persist_directory = persist_directory
         # Ensure directory exists
         os.makedirs(self.persist_directory, exist_ok=True)
-        # Using the specified lightweight model
-        self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+        # Using Gemini Embeddings to prevent Render Free Tier Memory Overload
+        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200,
