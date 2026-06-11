@@ -1,32 +1,23 @@
 import os
 import tempfile
 import PyPDF2
-import pdfplumber
 import docx
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.retrievers import BM25Retriever
+from langchain_core.documents import Document
 
 class RAGEngine:
     def __init__(self, persist_directory="./database/chroma_db"):
-        self.persist_directory = persist_directory
-        # Ensure directory exists
-        os.makedirs(self.persist_directory, exist_ok=True)
-        # Using Gemini Embeddings to prevent Render Free Tier Memory Overload
-        self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004", 
-            google_api_key=os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_API_KEY"))
-        )
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200,
             length_function=len
         )
-        self.vectorstore = None
+        self.retriever = None
+        self.docs = []
 
     def extract_text_from_pdf(self, file_path):
         text = ""
-        # Use lightweight PyPDF2 to prevent Render memory crashes (OOM Killer)
         try:
             with open(file_path, "rb") as f:
                 reader = PyPDF2.PdfReader(f)
@@ -43,8 +34,7 @@ class RAGEngine:
         return "\n".join([para.text for para in doc.paragraphs])
 
     def process_document(self, uploaded_file):
-        """Processes the uploaded file and builds the vector DB."""
-        # Create a temporary file since uploaded_file is a file-like object in Streamlit
+        """Processes the uploaded file and builds the BM25 Retriever."""
         with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp:
             tmp.write(uploaded_file.getvalue())
             tmp_path = tmp.name
@@ -67,31 +57,20 @@ class RAGEngine:
         # Chunk the text
         chunks = self.text_splitter.split_text(text)
         
-        # Create and persist Vector DB
-        self.vectorstore = Chroma.from_texts(
-            texts=chunks,
-            embedding=self.embeddings,
-            persist_directory=self.persist_directory
-        )
+        # Create BM25 Retriever (Zero API calls, Zero memory bloat)
+        self.docs = [Document(page_content=chunk) for chunk in chunks]
+        self.retriever = BM25Retriever.from_documents(self.docs)
+        self.retriever.k = 5
         return True
 
     def get_retriever(self):
-        if self.vectorstore is None:
-            # Try to load existing
-            self.vectorstore = Chroma(
-                persist_directory=self.persist_directory,
-                embedding_function=self.embeddings
-            )
-        return self.vectorstore.as_retriever(search_kwargs={"k": 5})
+        if self.retriever is None:
+            raise ValueError("Document not processed yet.")
+        return self.retriever
 
     def get_full_context(self):
         """Returns a concatenated string of some top chunks as general context for the LLM"""
-        if self.vectorstore is None:
-             self.vectorstore = Chroma(
-                persist_directory=self.persist_directory,
-                embedding_function=self.embeddings
-            )
-        # Fetch a broad representation by doing a generic search, or simply returning all stored docs
-        # Note: For large docs, we shouldn't return everything. We'll return top 10 chunks as context.
-        docs = self.vectorstore.similarity_search("project architecture overview methodology results", k=10)
-        return "\n\n".join([doc.page_content for doc in docs])
+        if not self.docs:
+            return ""
+        # Return top 10 chunks as context
+        return "\n\n".join([doc.page_content for doc in self.docs[:10]])
