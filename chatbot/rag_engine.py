@@ -13,7 +13,10 @@ class RAGEngine:
         # Ensure directory exists
         os.makedirs(self.persist_directory, exist_ok=True)
         # Using Gemini Embeddings to prevent Render Free Tier Memory Overload
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/embedding-001", 
+            google_api_key=os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_API_KEY"))
+        )
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=200,
