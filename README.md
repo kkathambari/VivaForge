@@ -1,4 +1,4 @@
-# 🎓 ProjectViva: AI Mock Viva Examiner & Tutor
+# 🎓 VivaForge: AI Mock Viva Examiner & Tutor
 
 ProjectViva is an advanced, conversational AI chatbot designed to help students prepare for their project viva examinations. By leveraging Retrieval-Augmented Generation (RAG) and the Gemini API, the chatbot analyzes uploaded project documents (PDF/DOCX) to conduct realistic technical viva sessions and act as an intelligent project tutor.
 
